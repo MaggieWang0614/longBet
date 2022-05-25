@@ -1,4 +1,20 @@
-longBet <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
+#' Demo model wiht fixed treatment effect
+#' 
+#' Fit panel data with indiviudal random effect, time random effect and static
+#' heterogeneous treatment effect with XBCF
+#' y_it = alpha_i + gamma_t + tau(x_i)*z_it + epsilon_it
+#' 
+#' @param y Numeric matrix of observed outcomes
+#' @param x Numeric matrix of static covariates
+#' @param z Numeric vector of treatment variables
+#' @param t0 Numeric value of treatment time
+#' 
+#' @return An object of fitted parameters
+#' 
+#' @examples 
+#' 
+#' @export
+longBet_fixte <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
                     mu_a = 0, nu_a = 1, alpha_a = 3, beta_a = 2, 
                     mu_g = 0, nu_g = 1, alpha_g = 3, beta_g = 2,
                     a = 16, b = 4){

@@ -1,0 +1,121 @@
+---
+title: "dgp"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd('~/Dropbox (ASU)/longBet files/')
+```
+
+## DGP
+Data Size
+```{r}
+n = 100
+t1 = 40
+t0 = 21
+p = 1
+```
+
+Individual effect
+```{r}
+# alpha_i ~ N(mu_a, sig_a)
+mu_a = 1
+sig_a = 1
+alpha = rnorm(n, mu_a, sig_a)
+```
+
+Time fixed effect
+```{r}
+# gamma_t ~ N(mu_g, sig_g)
+mu_g = 0
+sig_g = 1
+gamma = rnorm(t1, mu_g, sig_g)
+```
+
+Treatment effect
+```{r}
+x = as.matrix(rnorm(n))
+tau <- function(x){a = (x + 1.5)^2; 5*sqrt(a) + sin(5*a)}
+taux = tau(x)
+```
+
+Treatment
+```{r}
+z = rbinom(n, 1, 0.5)
+```
+
+Error term
+```{r}
+eps = matrix(rnorm(n*t1, 0, 0.2), nrow = n, ncol = t1)
+```
+
+Generate observations
+```{r}
+y0 = y1 = y = matrix(0, nrow = n, ncol = t1)
+for (i in 1:n){
+  y0[i,] = y0[i,] + alpha[i]
+}
+for (j in 1:t1){
+  y0[,j] = y0[,j] + gamma[j]
+}
+y0 = y0 + eps
+y1 = y0
+y1[, t0:t1] = y0[, t0:t1] + matrix(rep(taux, t1-t0+1), n, t1-t0+1)
+z_mat = matrix(rep(z, t1), n, t1)
+y = y0 * (1-z_mat) + y1 * z_mat
+# y[, (t0+1):t1] = y[, (t0+1):t1] + matrix(rep(taux*z, t1-t0), n, t1-t0)
+```
+
+Visualize time series
+```{r}
+plot(1:t1, rep(mu_a, t1), type = "l", col = 3, ylim = range(y), lwd = 2) # mean indiviudal effect
+for (i in 1:50){
+  lines(1:t1, y[i,], col = 1, lty = 2)
+}
+lines(1:t1, rep(mu_a, t1), col = 3, lwd = 2)
+lines(1:t1, gamma, col = 2, lwd = 2) # time effect
+legend("topleft", legend = c("Mean Individual Effect", "Time effect", "y"), col = c(3, 2, 1), lty = c(1, 1, 2))
+```
+Visualize treatment effect
+```{r}
+plot(x, taux)
+```
+
+Model version 1
+```{r}
+source('longBet_fixte.R')
+library(XBCF)
+fit <- longBet_fixte(y, x, z, t0, 100, 10)
+```
+
+```{r}
+mc = ncol(fit$alphahat)
+plot(1:ncol(fit$alphahat), rep(0, mc), type = "l", col = 3, ylim = range(fit$alphahat - alpha), lwd = 2) 
+for (i in 1:50){
+  lines(1:ncol(fit$alphahat), fit$alphahat[i,]-alpha[i], col = 1, lty = 2)
+}
+legend("topleft", legend = c("alphahat_i - alpha_i"), col = c(1), lty = c(2))
+```
+
+```{r}
+mc = ncol(fit$gammahat)
+plot(1:t1, gamma, type = "l", col = 3, ylim = range(fit$gammahat, gamma), lwd = 2) 
+for (i in 1:mc){
+  lines(1:t1, fit$gammahat[,i], col = 1, lty = 2)
+}
+lines(1:t1, gamma, col = 3, lwd = 2)
+legend("topleft", legend = c("gamma", "gammahat"), col = c(3,1), lty = c(1,2))
+```
+```{r}
+mc = ncol(fit$tauhat)
+orderx = order(x)
+plot(x[orderx], taux[orderx], type = "l", col = 3, ylim = range(fit$tauhat, taux), lwd = 2) 
+for (i in 1:mc){
+  lines(x[orderx], fit$tauhat[orderx,i], col = 1, lty = 2)
+}
+lines(x[orderx], taux[orderx], col = 3, lwd = 2)
+legend("topleft", legend = c("tau", "tauhat"), col = c(3,1), lty = c(1,2))
+```

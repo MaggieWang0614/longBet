@@ -86,9 +86,9 @@ plot(x, taux)
 
 Model version 1
 ```{r}
-source('demo_model.R')
+source('longBet_fixte.R')
 library(XBCF)
-fit <- longBet(y, x, z, t0, 100, 10)
+fit <- longBet_fixte(y, x, z, t0, 100, 10)
 ```
 
 ```{r}
