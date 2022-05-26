@@ -1,6 +1,6 @@
-#' Demo model wiht fixed treatment effect
+#' Demo model with fixed treatment effect
 #' 
-#' Fit panel data with indiviudal random effect, time random effect and static
+#' Fit panel data with individual random effect, time random effect and static
 #' heterogeneous treatment effect with XBCF
 #' y_it = alpha_i + gamma_t + tau(x_i)*z_it + epsilon_it
 #' 

@@ -7,7 +7,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-setwd('~/Dropbox (ASU)/longBet files/')
+setwd('~/Dropbox (ASU)/longBet/')
 ```
 
 ## DGP

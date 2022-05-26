@@ -1,5 +1,5 @@
 ---
-title: "dgp"
+title: "Time-varying treatment effect dgp"
 output:
   html_document:
     df_print: paged
@@ -7,7 +7,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-setwd('~/Dropbox (ASU)/longBet files/')
+setwd('~/Dropbox (ASU)/longBet/')
 ```
 
 ## DGP
@@ -35,11 +35,15 @@ sig_g = 1
 gamma = rnorm(t1, mu_g, sig_g)
 ```
 
-Treatment effect
+Time-varying (lagged) Treatment effect
 ```{r}
 x = as.matrix(rnorm(n))
 tau <- function(x){a = (x + 1.5)^2; 5*sqrt(a) + sin(5*a)}
-taux = tau(x)
+tau_mat <- matrix(0, n, t1-t0+1)
+tau_mat[,1] <- tau(x)
+for (i in 2:(t1-t0+1)){
+  tau_mat[,i] <- 0.9*tau_mat[,i-1]
+}
 ```
 
 Treatment
@@ -63,10 +67,9 @@ for (j in 1:t1){
 }
 y0 = y0 + eps
 y1 = y0
-y1[, t0:t1] = y0[, t0:t1] + matrix(rep(taux, t1-t0+1), n, t1-t0+1)
+y1[, t0:t1] = y0[, t0:t1] + tau_mat
 z_mat = matrix(rep(z, t1), n, t1)
 y = y0 * (1-z_mat) + y1 * z_mat
-# y[, (t0+1):t1] = y[, (t0+1):t1] + matrix(rep(taux*z, t1-t0), n, t1-t0)
 ```
 
 Visualize time series
@@ -81,14 +84,23 @@ legend("topleft", legend = c("Mean Individual Effect", "Time effect", "y"), col 
 ```
 Visualize treatment effect
 ```{r}
-plot(x, taux)
+# treatment effect over x
+plot(x, tau_mat[,1])
 ```
 
-Model version 1
 ```{r}
-source('longBet_fixte.R')
+# treatment effect over time
+plot(t0:t1, tau_mat[1,], type = "l", lty = 2, ylim = range(tau_mat))
+for (i in seq(1, n, length.out = 30)){
+  lines(t0:t1, tau_mat[i,], lty=2)
+}
+```
+## Demo model
+Model
+```{r}
+source('longBet.R')
 library(XBCF)
-fit <- longBet_fixte(y, x, z, t0, 100, 10)
+fit <- longBet_fixte(y, x, z, t0, 50, 10)
 ```
 
 ```{r}
@@ -109,13 +121,21 @@ for (i in 1:mc){
 lines(1:t1, gamma, col = 3, lwd = 2)
 legend("topleft", legend = c("gamma", "gammahat"), col = c(3,1), lty = c(1,2))
 ```
+
 ```{r}
-mc = ncol(fit$tauhat)
-orderx = order(x)
-plot(x[orderx], taux[orderx], type = "l", col = 3, ylim = range(fit$tauhat, taux), lwd = 2) 
-for (i in 1:mc){
-  lines(x[orderx], fit$tauhat[orderx,i], col = 1, lty = 2)
+plot(t0:t1, colMeans(fit$tauhat[1:10,1,]) - tau_mat[1,], type = "l", col = 1, ylim = range(colMeans(fit$tauhat) - tau_mat),lty = 2, ylab = 'Individual tauhat - tau over time')
+for (i in seq(1, n, length.out = 20)){
+  lines(t0:t1, colMeans(fit$tauhat[1:10,i,]) - tau_mat[i,], col = 1, lty = 2)
 }
-lines(x[orderx], taux[orderx], col = 3, lwd = 2)
-legend("topleft", legend = c("tau", "tauhat"), col = c(3,1), lty = c(1,2))
+lines(t0:t1, rep(0, t1-t0+1), col = 3, lty = 1, lwd = 2)
+legend("topleft", legend = c("tauhat - tau"), col = c(1), lty = c(1,2))
+```
+
+```{r}
+plot(t0:t1, colMeans(fit$tauhat[,1,]) - tau_mat[1,], type = "l", col = 1, ylim = range(colMeans(fit$tauhat) - tau_mat),lty = 2, ylab = 'Individual tauhat - tau over time')
+for (i in seq(1, n, length.out = 20)){
+  lines(t0:t1, colMeans(fit$tauhat[1:10,i,]) - tau_mat[i,], col = 1, lty = 2)
+}
+lines(t0:t1, rep(0, t1-t0+1), col = 3, lty = 1, lwd = 2)
+legend("topleft", legend = c("tauhat - tau"), col = c(1), lty = c(1,2))
 ```
