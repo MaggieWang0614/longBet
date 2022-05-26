@@ -1,6 +1,7 @@
 ---
 title: "Time-varying treatment effect dgp"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
@@ -98,9 +99,9 @@ for (i in seq(1, n, length.out = 30)){
 ## Demo model
 Model
 ```{r}
-source('longBet.R')
+source('longBet_re.R')
 library(XBCF)
-fit <- longBet_fixte(y, x, z, t0, 50, 10)
+fit <- longBet_re(y, x, z, t0, 50, 10)
 ```
 
 ```{r}
@@ -123,9 +124,9 @@ legend("topleft", legend = c("gamma", "gammahat"), col = c(3,1), lty = c(1,2))
 ```
 
 ```{r}
-plot(t0:t1, colMeans(fit$tauhat[1:10,1,]) - tau_mat[1,], type = "l", col = 1, ylim = range(colMeans(fit$tauhat) - tau_mat),lty = 2, ylab = 'Individual tauhat - tau over time')
+plot(t0:t1, colMeans(fit$tauhat[,1,]) , type = "l", col = 1, ylim = range(colMeans(fit$tauhat)),lty = 2, ylab = 'Estimated tauhat over time')
 for (i in seq(1, n, length.out = 20)){
-  lines(t0:t1, colMeans(fit$tauhat[1:10,i,]) - tau_mat[i,], col = 1, lty = 2)
+  lines(t0:t1, colMeans(fit$tauhat[1:10,i,]), col = 1, lty = 2)
 }
 lines(t0:t1, rep(0, t1-t0+1), col = 3, lty = 1, lwd = 2)
 legend("topleft", legend = c("tauhat - tau"), col = c(1), lty = c(1,2))
