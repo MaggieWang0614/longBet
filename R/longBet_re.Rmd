@@ -129,7 +129,7 @@ for (i in seq(1, n, length.out = 20)){
   lines(t0:t1, colMeans(fit$tauhat[1:10,i,]), col = 1, lty = 2)
 }
 lines(t0:t1, rep(0, t1-t0+1), col = 3, lty = 1, lwd = 2)
-legend("topleft", legend = c("tauhat - tau"), col = c(1), lty = c(1,2))
+legend("topleft", legend = c("tauhat"), col = c(1), lty = c(1,2))
 ```
 
 ```{r}
