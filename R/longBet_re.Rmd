@@ -31,7 +31,7 @@ alpha = rnorm(n, mu_a, sig_a)
 Time fixed effect
 ```{r}
 # gamma_t ~ N(mu_g, sig_g)
-mu_g = 0
+mu_g = 1
 sig_g = 1
 gamma = rnorm(t1, mu_g, sig_g)
 ```
@@ -139,4 +139,20 @@ for (i in seq(1, n, length.out = 20)){
 }
 lines(t0:t1, rep(0, t1-t0+1), col = 3, lty = 1, lwd = 2)
 legend("topleft", legend = c("tauhat - tau"), col = c(1), lty = c(1,2))
+```
+Plot yhat
+```{r}
+yhat <- matrix(rep(rowMeans(fit$alphahat), t1), n, t1)
+yhat <- yhat +  t(matrix(rep(rowMeans(fit$gammahat), n), t1, n)) 
+yhat[,t0:t1] <- yhat[,t0:t1] + colMeans(fit$tauhat) * matrix(rep(z, t1-t0+1), n, t1-t0+1)
+
+
+plot(1:t1, rep(mu_a, t1), type = "l", col = 3, ylim = range(yhat), lwd = 2) # mean indiviudal effect
+for (i in 1:50){
+  lines(1:t1, yhat[i,], col = 1, lty = 2)
+}
+lines(1:t1, rep(mu_a, t1), col = 3, lwd = 2)
+lines(1:t1, gamma, col = 2, lwd = 2) # time effect
+legend("topleft", legend = c("Mean Individual Effect", "Time effect", "y"), col = c(3, 2, 1), lty = c(1, 1, 2))
+
 ```

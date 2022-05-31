@@ -15,7 +15,7 @@ setwd('~/Dropbox (ASU)/longBet/')
 Data Size
 ```{r}
 n = 100
-t1 = 40
+t1 = 100
 t0 = 21
 p = 1
 ```
@@ -23,7 +23,7 @@ p = 1
 Individual effect
 ```{r}
 # alpha_i ~ N(mu_a, sig_a)
-mu_a = 1
+mu_a = 0
 sig_a = 1
 alpha = rnorm(n, mu_a, sig_a)
 ```
@@ -31,7 +31,7 @@ alpha = rnorm(n, mu_a, sig_a)
 Time fixed effect
 ```{r}
 # gamma_t ~ N(mu_g, sig_g)
-mu_g = 0
+mu_g = 1
 sig_g = 1
 gamma = rnorm(t1, mu_g, sig_g)
 ```
