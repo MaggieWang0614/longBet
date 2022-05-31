@@ -40,12 +40,15 @@ longBet_re <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
   alphahat <- matrix(0, n, mc)
   gammahat <- matrix(0, t1, mc)
   tauhat <- array(0, dim = c(mc, n, t1-t0+1))
+  muhat <- array(0, dim = c(mc, n, t1-t0+1))
   sigma2hat <- rep(0, mc)
   
   alpha_vec <- rep(0, n)
   gamma_vec <- rep(0, t1)
   tau_vec <- rep(0,n*(t1-t0+1))
   tau_mat <- matrix(tau_vec, n, t1-t0+1)
+  mu_vec <- rep(0, n*(t1-t0+1))
+  mu_mat <- matrix(mu_vec, n, t1-t0+1)
   
   # hierachical params
   mu_alpha <- sigma_alpha2 <- mu_gamma <- sigma_gamma2 <- rep(0, mc)
@@ -62,7 +65,7 @@ longBet_re <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
     # update treatment effect
     # a demo model, input tau(x, k) for y_{i, t0+k}
     # vectorize residuals
-    res[,t0:t1] <- res[, t0:t1] + tau_mat*matrix(rep(z, t1-t0+1), n, t1-t0+1)
+    res[,t0:t1] <- res[, t0:t1] + mu_mat + tau_mat*matrix(rep(z, t1-t0+1), n, t1-t0+1)
     xbcf_y <- as.vector(res[,t0:t1])
     xbcf_x <- c()
     for (i in 1:(t1-t0+1)){
@@ -70,13 +73,16 @@ longBet_re <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
     }
     xbcf_z <- rep(z, t1-t0+1)
     xbcf.fit <- XBCF(as.matrix(xbcf_y), as.matrix(xbcf_z), as.matrix(xbcf_x), as.matrix(xbcf_x),
-                     num_sweeps = 1, burnin = 0, n_trees_con = 0, n_trees_mod = ntrees,
+                     num_sweeps = 5, burnin = 4, n_trees_con = 0, n_trees_mod = ntrees,
                      pcat_con = 0, pcat_mod = 0)
     
-    tau_vec <- xbcf.fit$tauhats
+    tau_vec <- xbcf.fit$tauhats.adjusted
     tau_mat <- matrix(tau_vec, n, t1-t0+1)
-    res[,t0:t1] <- res[, t0:t1] - tau_mat*matrix(rep(z, t1-t0+1), n, t1-t0+1)
+    # mu_vec <- xbcf.fit$muhats.adjusted
+    # mu_mat <- matrix(mu_vec, n, t1-t0+1)
+    res[,t0:t1] <- res[, t0:t1] - mu_mat - tau_mat*matrix(rep(z, t1-t0+1), n, t1-t0+1)
     tauhat[iter,,] <- tau_mat
+    muhat[iter,,] <- mu_mat
     
     
     # update hierachical param for alpha
@@ -142,6 +148,7 @@ longBet_re <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
   obj$alphahat <- alphahat[, (burnin+1):mc]
   obj$gammahat <- gammahat[, (burnin+1):mc]
   obj$tauhat <- tauhat[(burnin+1):mc, , ]
+  obj$muhat <- muhat[(burnin+1):mc,,]
   obj$sigma2hat <- sigma2hat[(burnin+1):mc]
   
   return(obj)
