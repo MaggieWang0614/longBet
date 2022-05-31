@@ -14,10 +14,10 @@
 #' @examples 
 #' 
 #' @export
-longBet_re <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
-                          mu_a = 0, nu_a = 1, alpha_a = 3, beta_a = 2, 
-                          mu_g = 0, nu_g = 1, alpha_g = 3, beta_g = 2,
-                          a = 16, b = 4){
+longBet_true_gamma <- function(y, x, z, gamma, t0, mc = 100, burnin = 10, ntrees = 10,
+                       mu_a = 0, nu_a = 1, alpha_a = 3, beta_a = 2, 
+                       mu_g = 0, nu_g = 1, alpha_g = 3, beta_g = 2,
+                       a = 16, b = 4){
   
   # prior params
   mu_a = 0; nu_a = 1; alpha_a = 3; beta_a = 10
@@ -56,7 +56,7 @@ longBet_re <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
   # ini params
   sigma2 <- 1 / rgamma(1, a, b)
   
-  res <- y # as if res = y - 0 - 0 - 0 * z
+  res <- y - t(matrix(rep(gamma, n), t1, n)) # as if res = y - 0 - 0 - 0 * z
   
   # iteration
   for (iter in 1:mc){
@@ -98,17 +98,17 @@ longBet_re <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
     post_nu_a <-  nu_a + n 
     mu_alpha[iter] <- rnorm(1, post_mu_a, sqrt(sigma_alpha2[iter]/post_nu_a))
     
-    # update hierachical param for gamma
-    # gamma_t ~ N(mu_gamma, sigma_gamma)
-    # (mu_gamma, sigma_gamma2) ~ Normal-IG(mu_g, nu_g, alpha_g, beta_g)
-    # sigma_gamma2  | gamma_t ~ posterior IG
-    post_alpha_g <- alpha_g + t1 / 2
-    post_beta_g <- beta_g + 0.5*sum((gamma_vec - mean(gamma_vec))^2) + 0.5*t1*nu_g * (mean(gamma_vec) - mu_g)^2 / (t1 + nu_g)
-    sigma_gamma2[iter] <- 1 / rgamma(1, post_alpha_g, post_beta_g)
-    # mu_gamma | sigma_gamma2, mu_g, nu_g ~ N(mu_g, sigma_gamma2/nu_g)
-    post_mu_g <- (nu_g * mu_g + t1*mean(gamma_vec)) / (nu_g + t1)
-    post_nu_g <-  nu_g + t1
-    mu_gamma[iter] <- rnorm(1, post_mu_g, sqrt(sigma_gamma2[iter]/post_nu_g))
+    # # update hierachical param for gamma
+    # # gamma_t ~ N(mu_gamma, sigma_gamma)
+    # # (mu_gamma, sigma_gamma2) ~ Normal-IG(mu_g, nu_g, alpha_g, beta_g)
+    # # sigma_gamma2  | gamma_t ~ posterior IG
+    # post_alpha_g <- alpha_g + t1 / 2
+    # post_beta_g <- beta_g + 0.5*sum((gamma_vec - mean(gamma_vec))^2) + 0.5*t1*nu_g * (mean(gamma_vec) - mu_g)^2 / (t1 + nu_g)
+    # sigma_gamma2[iter] <- 1 / rgamma(1, post_alpha_g, post_beta_g)
+    # # mu_gamma | sigma_gamma2, mu_g, nu_g ~ N(mu_g, sigma_gamma2/nu_g)
+    # post_mu_g <- (nu_g * mu_g + t1*mean(gamma_vec)) / (nu_g + t1)
+    # post_nu_g <-  nu_g + t1
+    # mu_gamma[iter] <- rnorm(1, post_mu_g, sqrt(sigma_gamma2[iter]/post_nu_g))
     
     # update alpha
     res <- res + matrix(rep(alpha_vec, t1), n, t1) # update residual, add alpha from prev iter
@@ -123,18 +123,18 @@ longBet_re <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
     res <- res - matrix(rep(alpha_vec, t1), n, t1) # update residual
     alphahat[, iter] <- alpha_vec
     
-    # update gamma
-    res <- res + t(matrix(rep(gamma_vec, n), t1, n))
-    for (i in 1:t1){
-      # gamma_t ~ N(mu_gamma, sigma_gamma2)
-      # res | gamma_t ~ N(gamma_t, sigma2)
-      post_mu_gamma <- (mu_gamma[iter] / sigma_gamma2[iter] + sum(res[,i]) / sigma2) / (1/sigma_gamma2[iter] + n/sigma2)
-      post_sigma_gamma2 <- 1 / (1 / sigma_gamma2[iter] + n / sigma2)
-      gamma_vec[i] <- rnorm(1, post_mu_gamma, sqrt(post_sigma_gamma2))
-    }
-    res <- res - t(matrix(rep(gamma_vec, n), t1, n)) # update residual
-    gammahat[, iter] <- gamma_vec
-
+    # # update gamma
+    # res <- res + t(matrix(rep(gamma_vec, n), t1, n))
+    # for (i in 1:t1){
+    #   # gamma_t ~ N(mu_gamma, sigma_gamma2)
+    #   # res | gamma_t ~ N(gamma_t, sigma2)
+    #   post_mu_gamma <- (mu_gamma[iter] / sigma_gamma2[iter] + sum(res[,i]) / sigma2) / (1/sigma_gamma2[iter] + n/sigma2)
+    #   post_sigma_gamma2 <- 1 / (1 / sigma_gamma2[iter] + n / sigma2)
+    #   gamma_vec[i] <- rnorm(1, post_mu_gamma, sqrt(post_sigma_gamma2))
+    # }
+    # res <- res - t(matrix(rep(gamma_vec, n), t1, n)) # update residual
+    gammahat[, iter] <- gamma
+    
     
     
     # update sigma

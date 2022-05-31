@@ -113,9 +113,9 @@ for (i in seq(1, n, length.out = 30)){
 Model
 
 ```{r}
-source('longBet_re.R')
+source('longBet_true_gamma.R')
 library(XBCF)
-fit <- longBet_re(y, x, z, t0, 50, 20)
+fit <- longBet_true_gamma(y, x, z, gamma, t0, 100, 20, 40)
 ```
 
 ```{r}
@@ -130,10 +130,10 @@ legend("topleft", legend = c("alphahat_i - alpha_i"), col = c(1), lty = c(2))
 ```{r}
 mc = ncol(fit$gammahat)
 plot(1:t1, gamma, type = "l", col = 3, ylim = range(fit$gammahat, gamma), lwd = 2) 
+lines(1:t1, gamma, col = 3, lwd = 2)
 for (i in 1:mc){
   lines(1:t1, fit$gammahat[,i], col = 1, lty = 2)
 }
-lines(1:t1, gamma, col = 3, lwd = 2)
 legend("topleft", legend = c("gamma", "gammahat"), col = c(3,1), lty = c(1,2))
 ```
 
