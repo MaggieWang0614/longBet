@@ -1,23 +1,20 @@
-#' Demo model with time-varying treatment effect using post-treatment period as covariate
+#' Demo model with hierachical two way random effects.
 #' 
 #' Fit panel data with individual random effect, time random effect and 
-#' heterogeneous treatment effect with XBCF.
-#' y_it = alpha_i + gamma_t + tau(x_i, k)*z_it + epsilon_it
+#' y_it = alpha_i + gamma_t + epsilon_it
 #' 
 #' @param y Numeric matrix of observed outcomes
 #' @param x Numeric matrix of static covariates
-#' @param z Numeric vector of treatment variables
-#' @param t0 Numeric value of treatment time
 #' 
 #' @return An object of fitted parameters
 #' 
 #' @examples 
 #' 
 #' @export
-longBet_re <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
-                          mu_a = 0, nu_a = 1, alpha_a = 3, beta_a = 2, 
-                          mu_g = 0, nu_g = 1, alpha_g = 3, beta_g = 2,
-                          a = 16, b = 4){
+longBet_tw <- function(y, x, mc = 100, burnin = 10, ntrees = 10,
+                       mu_a = 0, nu_a = 1, alpha_a = 3, beta_a = 2, 
+                       mu_g = 0, nu_g = 1, alpha_g = 3, beta_g = 2,
+                       a = 16, b = 4){
   
   # prior params
   mu_a = 0; nu_a = 1; alpha_a = 3; beta_a = 10
@@ -39,13 +36,10 @@ longBet_re <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
   # ini parameters
   alphahat <- matrix(0, n, mc)
   gammahat <- matrix(0, t1, mc)
-  tauhat <- array(0, dim = c(mc, n, t1-t0+1))
   sigma2hat <- rep(0, mc)
   
   alpha_vec <- rep(0, n)
   gamma_vec <- rep(0, t1)
-  tau_vec <- rep(0,n*(t1-t0+1))
-  tau_mat <- matrix(tau_vec, n, t1-t0+1)
   
   # hierachical params
   mu_alpha <- sigma_alpha2 <- mu_gamma <- sigma_gamma2 <- rep(0, mc)
@@ -57,28 +51,7 @@ longBet_re <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
   
   # iteration
   for (iter in 1:mc){
-    
-    
-    # update treatment effect
-    # a demo model, input tau(x, k) for y_{i, t0+k}
-    # vectorize residuals
-    res[,t0:t1] <- res[, t0:t1] + tau_mat*matrix(rep(z, t1-t0+1), n, t1-t0+1)
-    xbcf_y <- as.vector(res[,t0:t1])
-    xbcf_x <- c()
-    for (i in 1:(t1-t0+1)){
-      xbcf_x <- rbind(xbcf_x, cbind(x, i))
-    }
-    xbcf_z <- rep(z, t1-t0+1)
-    xbcf.fit <- XBCF(as.matrix(xbcf_y), as.matrix(xbcf_z), as.matrix(xbcf_x), as.matrix(xbcf_x),
-                     num_sweeps = 1, burnin = 0, n_trees_con = 0, n_trees_mod = ntrees,
-                     pcat_con = 0, pcat_mod = 0)
-    
-    tau_vec <- xbcf.fit$tauhats
-    tau_mat <- matrix(tau_vec, n, t1-t0+1)
-    res[,t0:t1] <- res[, t0:t1] - tau_mat*matrix(rep(z, t1-t0+1), n, t1-t0+1)
-    tauhat[iter,,] <- tau_mat
-    
-    
+
     # update hierachical param for alpha
     # alpha_i ~ N(mu_alpha, sigma_alpha)
     # (mu_alpha, sigma_alpha2) ~ Normal-IG(mu_a, nu_a, alpha_a, beta_a)
@@ -127,7 +100,6 @@ longBet_re <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
     }
     res <- res - t(matrix(rep(gamma_vec, n), t1, n)) # update residual
     gammahat[, iter] <- gamma_vec
-
     
     
     # update sigma
@@ -141,7 +113,6 @@ longBet_re <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
   obj = list()
   obj$alphahat <- alphahat[, (burnin+1):mc]
   obj$gammahat <- gammahat[, (burnin+1):mc]
-  obj$tauhat <- tauhat[(burnin+1):mc, , ]
   obj$sigma2hat <- sigma2hat[(burnin+1):mc]
   
   return(obj)
