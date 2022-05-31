@@ -21,6 +21,7 @@ longBet_xbcf <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10){
   t1 <- ncol(y)
   
   xbcf_y <- as.vector(y)
+  mean_y <- mean(xbcf_y)
   x_con <- c()
   x_mod <- c()
   for (i in 1:t1){
@@ -29,19 +30,19 @@ longBet_xbcf <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10){
   }
   xbcf_z <- c(rep(0, (t0-1)*n), rep(z, t1-t0+1))
   xbcf.fit <- XBCF(as.matrix(xbcf_y), as.matrix(xbcf_z), as.matrix(x_con), as.matrix(x_mod),
-                   num_sweeps = mc, burnin = burnin, n_trees_con = ntrees, n_trees_mod = ntrees,
+                   num_sweeps = mc, burnin = burnin, n_trees_con = 0, n_trees_mod = ntrees,
                    pcat_con = 0, pcat_mod = 0)
   
-  tauhat <- array(0, dim = c(n, t1, mc))
-  muhat <- array(0, dim = c(n, t1, mc))
-  for (i in 1:mc){
-    tauhat[,,i] <- matrix(xbcf.fit$tauhats[,i], n, t1)
-    muhat[,,i] <- matrix(xbcf.fit$muhats[,i], n, t1)
+  tauhat <- array(0, dim = c(mc - burnin, n, t1))
+  muhat <- array(0, dim = c(mc - burnin, n, t1))
+  for (i in 1:(mc-burnin)){
+    tauhat[i,,] <- matrix(xbcf.fit$tauhats.adjusted[,i], n, t1) + mean_y
+    muhat[i,,] <- matrix(xbcf.fit$muhats.adjusted[,i], n, t1)
   }
   
   obj <- list()
-  obj$tauhat <- tauhat[, , (burnin+1):mc]
-  obj$muhat <- muhat[, ,(burnin+1):mc]
+  obj$tauhat <- tauhat
+  obj$muhat <- muhat
   
   return(obj)
   
