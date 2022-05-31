@@ -15,7 +15,7 @@ setwd('~/Dropbox (ASU)/longBet/')
 Data Size
 ```{r}
 n = 100
-t1 = 100
+t1 = 40
 t0 = 21
 p = 1
 ```
@@ -71,13 +71,21 @@ source('two_way.R')
 fit <- longBet_tw(y, x, 50, 10)
 ```
 
+The frequentist way
 ```{r}
-mc = ncol(fit$alphahat)
-plot(1:ncol(fit$alphahat), rep(0, mc), type = "l", col = 3, ylim = range(fit$alphahat - alpha), lwd = 2) 
-for (i in 1:50){
-  lines(1:ncol(fit$alphahat), fit$alphahat[i,]-alpha[i], col = 1, lty = 2)
-}
-legend("topleft", legend = c("alphahat_i - alpha_i"), col = c(1), lty = c(2))
+df <- data.frame(y = as.vector(y), ind = rep(1:n, t1), time = as.vector(sapply(1:t1, rep, n)))
+fit.lm <- lm(y ~ factor(ind) + factor(time), data = df)
+```
+
+```{r}
+
+```
+
+```{r}
+par(mfrow=c(1,2))
+alphahat <- colMeans(fit$alphahat)
+hist(alphahat-alpha, main("Hierachical alphahat - alpha"))
+# plot(1:t1, rep(mu_a, mc))
 ```
 
 ```{r}
