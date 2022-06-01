@@ -101,9 +101,19 @@ Model
 ```{r}
 source('longBet_xbcf.R')
 library(XBCF)
-mc = 50
-burnin = 10
-fit <- longBet_xbcf(y[,t0:t1], x, z, 1, mc, burnin)
+mc = 200
+burnin = 40
+fit <- longBet_xbcf(y[,t0:t1], x, z, 1, mc, burnin, ntrees = 200)
+```
+
+```{r}
+plot(t0:t1, colMeans(fit$tauhat[,1,]) - tau_mat[1,], type = "l", col = 1, ylim = range(colMeans(fit$tauhat) - tau_mat),lty = 2, ylab = 'Individual tauhat - tau over time')
+for (i in seq(1, n, length.out = 20)){
+  lines(t0:t1, colMeans(fit$tauhat[1:10,i,]) - tau_mat[i,], col = 1, lty = 2)
+}
+lines(t0:t1, rep(0, t1-t0+1), col = 3, lty = 1, lwd = 2)
+legend("topleft", legend = c("tauhat - tau"), col = c(1), lty = c(1,2))
+
 ```
 
 ```{r}

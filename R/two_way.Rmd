@@ -74,18 +74,15 @@ fit <- longBet_tw(y, x, 50, 10)
 The frequentist way
 ```{r}
 df <- data.frame(y = as.vector(y), ind = rep(1:n, t1), time = as.vector(sapply(1:t1, rep, n)))
-fit.lm <- lm(y ~ factor(ind) + factor(time), data = df)
+fit.lm <- lm(y ~ 0 + factor(ind) + factor(time), data = df)
 ```
 
-```{r}
-
-```
 
 ```{r}
 par(mfrow=c(1,2))
-alphahat <- colMeans(fit$alphahat)
-hist(alphahat-alpha, main("Hierachical alphahat - alpha"))
-# plot(1:t1, rep(mu_a, mc))
+alphahat <- rowMeans(fit$alphahat)
+hist(alphahat-alpha, main = "Hierachical alphahat - alpha")
+hist(as.vector(fit.lm$coefficients[1:n] - alpha), main = "TWFE alphahat - alpha")
 ```
 
 ```{r}
