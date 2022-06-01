@@ -23,7 +23,7 @@ p = 1
 Individual effect
 ```{r}
 # alpha_i ~ N(mu_a, sig_a)
-mu_a = 0
+mu_a = 1
 sig_a = 1
 alpha = rnorm(n, mu_a, sig_a)
 ```
@@ -31,7 +31,7 @@ alpha = rnorm(n, mu_a, sig_a)
 Time fixed effect
 ```{r}
 # gamma_t ~ N(mu_g, sig_g)
-mu_g = 1
+mu_g = 0
 sig_g = 1
 gamma = rnorm(t1, mu_g, sig_g)
 ```
@@ -68,7 +68,7 @@ legend("topleft", legend = c("Mean Individual Effect", "Time effect", "y"), col 
 Model
 ```{r}
 source('two_way.R')
-fit <- longBet_tw(y, x, 50, 10)
+fit <- longBet_tw(y, x, 50, 10, beta_a = 10)
 ```
 
 The frequentist way

@@ -15,14 +15,14 @@
 #' 
 #' @export
 longBet_re <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
-                          mu_a = 0, nu_a = 1, alpha_a = 3, beta_a = 2, 
-                          mu_g = 0, nu_g = 1, alpha_g = 3, beta_g = 2,
+                          mu_a = 0, nu_a = 1, alpha_a = 3, beta_a = 10, 
+                          mu_g = 0, nu_g = 1, alpha_g = 3, beta_g = 10,
                           a = 16, b = 4){
   
-  # prior params
-  mu_a = 0; nu_a = 1; alpha_a = 3; beta_a = 10
-  mu_g = 0; nu_g = 1; alpha_g = 3; beta_g = 10
-  a = 16; b = 4
+  # # prior params
+  # mu_a = 0; nu_a = 1; alpha_a = 3; beta_a = 10
+  # mu_g = 0; nu_g = 1; alpha_g = 3; beta_g = 10
+  # a = 16; b = 4
   
   # required package
   # library(XBCF)
