@@ -22,26 +22,26 @@ p = 1
 
 Individual effect
 ```{r}
-# alpha_i ~ N(mu_a, sig_a)
-mu_a = 0
-sig_a = 1
+# # alpha_i ~ N(mu_a, sig_a)
+# mu_a <- 0
+# sig_a <- 1
 # alpha = rnorm(n, mu_a, sig_a)
 alpha <- rep(0, n)
 ```
 
 Time fixed effect
 ```{r}
-# gamma_t ~ N(mu_g, sig_g)
-mu_g = 1
-sig_g = 1
-# gamma = rnorm(t1, mu_g, sig_g)
+# # gamma_t ~ N(mu_g, sig_g)
+# mu_g <- 1
+# sig_g <- 1
+# gamma <- rnorm(t1, mu_g, sig_g)
 gamma <- rep(0, t1)
 ```
 
 Time-varying (lagged) Treatment effect
 ```{r}
 x = as.matrix(rnorm(n))
-tau <- function(x){a = (x + 1.5)^2; 5*sqrt(a) + sin(5*a)+5}
+tau <- function(x){a = (x + 1.5)^2; 5*sqrt(a) + sin(5*a)+1}
 tau_mat <- matrix(0, n, t1-t0+1)
 tau_mat[,1] <- tau(x)
 for (i in 2:(t1-t0+1)){
@@ -102,14 +102,12 @@ plot(x, tau_mat[,1])
 ## Demo model
 Model
 ```{r}
-source('longBet_xbcf.R')
+source('multi_xbcf.R')
 library(XBCF)
-mc = 200
-burnin = 40
-fit <- longBet_xbcf(y[,t0:t1], x, z, 1, mc, burnin, ntrees = 200,
-                    alpha_mod = 0.95, beta_mod = 1.25)
+mc = 50
+burnin = 20
+fit <- multi_xbcf(y, x, z, t0, mc, burnin, ntrees = 40)
 ```
-
 
 ```{r}
 tau_hat <- colMeans(fit$tauhat)
@@ -125,11 +123,11 @@ axis(2, at=pretty(rowMeans(pct_bias)), lab=pretty(rowMeans(pct_bias)) * 100, las
 # legend("topleft", legend = c("abs((tauhat - tau )/tau)"), col = c(1), lty = c(1,2))
 
 ```
-
+treatment bias over time
 ```{r}
-plot(t0:t1, colMeans(fit$tauhat[,1,]) - tau_mat[1,], type = "l", col = 1, ylim = range(colMeans(fit$tauhat) - tau_mat),lty = 2, ylab = 'Individual tauhat - tau over time')
+plot(t0:t1, tau_hat[1,] - tau_mat[1,], type = "l", col = 1, ylim = range(colMeans(fit$tauhat) - tau_mat),lty = 2, ylab = 'Individual tauhat - tau over time')
 for (i in seq(1, n, length.out = 20)){
-  lines(t0:t1, colMeans(fit$tauhat[1:10,i,]) - tau_mat[i,], col = 1, lty = 2)
+  lines(t0:t1, tau_hat[i,] - tau_mat[i,], col = 1, lty = 2)
 }
 lines(t0:t1, rep(0, t1-t0+1), col = 3, lty = 1, lwd = 2)
 legend("topleft", legend = c("tauhat - tau"), col = c(1), lty = c(1,2))
