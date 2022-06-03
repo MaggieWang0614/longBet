@@ -8,7 +8,7 @@ date: '2022-06-02'
 knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 library(XBCF)
-source('longBet_re.R')
+source('longBet_prog.R')
 ```
 
 ## DGP
@@ -22,13 +22,13 @@ sig_a = 1
 mu_g = 1
 sig_g = 1
 
-mc <- 20
+mc <- 5
 tau_xbcf_mc <- array(0, dim = c(mc, n, t1-t0+1))
 tau_freq_mc <- array(0, dim = c(mc, t1))
 # pct_bias_mc <- array(0, dim = c(mc, n, t1-t0+1))
 
-alpha = rnorm(n, mu_a, sig_a)
-gamma = rnorm(t1, mu_g, sig_g)
+# alpha = rnorm(n, mu_a, sig_a)
+# gamma = rnorm(t1, mu_g, sig_g)
 
 x = as.matrix(rnorm(n))
 mu <- function(x, t) {1 + 0.5*x - 0.5*t  + 0.1*x*t}
@@ -51,24 +51,26 @@ z = rbinom(n, 1, pi)
 ```{r}
 pb <- txtProgressBar(min = 0, max = mc, initial = 0) 
 count_iter <- 0
-if (!exists("longBet_sim.RData")){
-  save(count_iter, tau_mat, file = "longBet_sim.RData")
+filename <- "longBet_sim_prog.RData"
+if (!exists(filename)){
+  save(count_iter, tau_mat, file = filename)
 }
 
 for (iter in 1:mc){
   setTxtProgressBar(pb,iter)
-  load('longBet_sim.RData')
+  load(filename)
   if (count_iter > iter) {next}
   
   eps = matrix(rnorm(n*t1, 0, 0.2), nrow = n, ncol = t1)
  
   y0 = y1 = y = matrix(0, nrow = n, ncol = t1)
-  for (i in 1:n){
-    y0[i,] = y0[i,] + alpha[i]
-  }
-  for (j in 1:t1){
-    y0[,j] = y0[,j] + gamma[j]
-  }
+  y0 <- mu_mat
+  # for (i in 1:n){
+  #   y0[i,] = y0[i,] + alpha[i]
+  # }
+  # for (j in 1:t1){
+  #   y0[,j] = y0[,j] + gamma[j]
+  # }
   y0 = y0 + eps
   y1 = y0
   y1[, t0:t1] = y0[, t0:t1] + tau_mat
@@ -76,10 +78,10 @@ for (iter in 1:mc){
   y = y0 * (1-z_mat) + y1 * z_mat
  
   # XBCF
-  fit <- longBet_re(y, x, z, t0, 100, 20, 40)
+  fit <- longBet_prog(y, x, z, t0, 100, 20, 40)
   tau_hat <- colMeans(fit$tauhat)
   # pct_bias <- abs((tau_hat - tau_mat) / tau_mat)
-  tau_xbcf_mc[iter,,] <- tau_hat
+  tau_xbcf_mc[iter,,] <- tau_hat[,t0:t1]
   
   # Frequentist
   ytilde <- y - matrix(rowMeans(y)) %*% rep(1, t1) - rep(1, n) %*% t(matrix(colMeans(y))) + mean(y)
@@ -87,8 +89,8 @@ for (iter in 1:mc){
   tau_freq_mc[iter,] <- colMeans(ytilde[matrix(z_mat[,1])==1,]) - colMeans(ytilde[matrix(z_mat[,1])==0,]) - recenter
   
   count_iter <- iter
-  save(count_iter, tau_mat, tau_xbcf_mc, tau_freq_mc, file = "longBet_sim.RData")
-  
+  save(count_iter, tau_mat, tau_xbcf_mc, tau_freq_mc, file = filename)
+
 }
 ```
 
