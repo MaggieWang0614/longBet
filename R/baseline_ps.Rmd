@@ -8,7 +8,7 @@ date: '2022-06-02'
 knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 library(XBCF)
-source('longBet_re.R')
+source('longBet_xbcf.R')
 ```
 
 ## DGP
@@ -40,9 +40,8 @@ for (i in 2:(t1-t0+1)){
   tau_mat[,i] <- 0.9*tau_mat[,i-1]
 }
 
-# s <- sd(x)
-# pi <- 0.8*pnorm(3*x / s -0.5*x ) + 0.05 + runif(n)/10
-pi <- 0.5
+s <- sd(x)
+pi <- 0.8*pnorm(3*x / s -0.5*x ) + 0.05 + runif(n)/10
 z = rbinom(n, 1, pi)
 
 ```
@@ -52,7 +51,7 @@ z = rbinom(n, 1, pi)
 ```{r}
 pb <- txtProgressBar(min = 0, max = mc, initial = 0) 
 count_iter <- 0
-filename <- "longBet_sim.RData"
+filename <- "longBet_sim_ps.RData"
 if (!exists(filename)){
   save(count_iter, tau_mat, file = filename)
 }
@@ -78,10 +77,10 @@ for (iter in 1:mc){
   y = y0 * (1-z_mat) + y1 * z_mat
  
   # XBCF
-  fit <- longBet_re(y, x, z, t0, 100, 20, 40)
+  fit <- longBet_xbcf(y, x, z, t0, 100, 20, 40)
   tau_hat <- colMeans(fit$tauhat)
   # pct_bias <- abs((tau_hat - tau_mat) / tau_mat)
-  tau_xbcf_mc[iter,,] <- tau_hat
+  tau_xbcf_mc[iter,,] <- tau_hat[,t0:t1]
   
   # Frequentist
   ytilde <- y - matrix(rowMeans(y)) %*% rep(1, t1) - rep(1, n) %*% t(matrix(colMeans(y))) + mean(y)

@@ -96,7 +96,7 @@ for (iter in 1:mc){
 
 ## Results
 ```{r}
-load('longBet_sim.RData')
+load(filename)
 df <- data.frame(time = seq(t0,t1),
                  xbcf = colMeans(colMeans(tau_xbcf_mc)),
                  freq = colMeans(tau_freq_mc[,t0:t1]),
