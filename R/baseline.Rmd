@@ -27,8 +27,10 @@ tau_xbcf_mc <- array(0, dim = c(mc, n, t1-t0+1))
 tau_freq_mc <- array(0, dim = c(mc, t1))
 # pct_bias_mc <- array(0, dim = c(mc, n, t1-t0+1))
 
-alpha = rnorm(n, mu_a, sig_a)
-gamma = rnorm(t1, mu_g, sig_g)
+# alpha = rnorm(n, mu_a, sig_a)
+# gamma = rnorm(t1, mu_g, sig_g)
+alpha <- rep(0, n)
+gamma <- rep(0, t1)
 
 x = as.matrix(rnorm(n))
 tau <- function(x){a = (x + 1.5)^2; 5*sqrt(a) + sin(5*a) + 1}
