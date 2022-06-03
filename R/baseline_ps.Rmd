@@ -97,9 +97,11 @@ for (iter in 1:mc){
 ```{r}
 load(filename)
 df <- data.frame(time = seq(t0,t1),
-                 xbcf = colMeans(colMeans(tau_xbcf_mc)),
-                 freq = colMeans(tau_freq_mc[,t0:t1]),
+                 xbcf_ate = colMeans(colMeans(tau_xbcf_mc)),
+                 freq_ate = colMeans(tau_freq_mc[,t0:t1]),
                  ate = colMeans(tau_mat),
+                 xbcf_att = colMeans(colMeans(tau_xbcf_mc)[z_mat[,1]==1,]),
+                 freq_att = colMeans(tau_freq_mc[,t0:t1]),
                  att = colMeans(tau_mat[z_mat[,1]==1,])
                  ) 
 ```
@@ -107,17 +109,17 @@ df <- data.frame(time = seq(t0,t1),
 
 ```{r}
 par(mfrow=c(2,2))
-plot(df$xbcf - df$ate, main = "XBCF ATE")
-plot(df$freq - df$ate, main = "Freqentist ATE")
-plot(df$xbcf - df$att, main = "XBCF ATT")
-plot(df$freq - df$att, main = "Frequentist ATT")
+plot(df$xbcf_ate - df$ate, main = "XBCF ATE")
+plot(df$freq_ate - df$ate, main = "Freqentist ATE")
+plot(df$xbcf_att - df$att, main = "XBCF ATT")
+plot(df$freq_att - df$att, main = "Frequentist ATT")
 ```
 
 ```{r}
 par(mfrow=c(2,2))
-plot(100 * (df$xbcf - df$ate) / df$ate , main = "XBCF PCT ATE")
-plot(100 * (df$freq - df$ate) / df$ate, main = "Freqentist PCT ATE")
-plot(100 * (df$xbcf - df$att) / df$att, main = "XBCF PCT ATT")
-plot(100 * (df$freq - df$att) / df$att, main = "Frequentist PCT ATT")
+plot(100 * (df$xbcf_ate - df$ate) / df$ate , main = "XBCF PCT ATE")
+plot(100 * (df$freq_ate - df$ate) / df$ate, main = "Freqentist PCT ATE")
+plot(100 * (df$xbcf_att - df$att) / df$att, main = "XBCF PCT ATT")
+plot(100 * (df$freq_att - df$att) / df$att, main = "Frequentist PCT ATT")
 ```
 
