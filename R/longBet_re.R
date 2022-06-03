@@ -74,10 +74,11 @@ longBet_re <- function(y, x, z, t0, mc = 100, burnin = 10, ntrees = 10,
     }
     xbcf_z <- rep(z, t1-t0+1)
     xbcf.fit <- XBCF(as.matrix(xbcf_y), as.matrix(xbcf_z), as.matrix(xbcf_x), as.matrix(xbcf_x),
-                     num_sweeps = 5, burnin = 4, n_trees_con = 0, n_trees_mod = ntrees,
+                     num_sweeps = 3, burnin = 2, n_trees_con = 0, n_trees_mod = ntrees,
                      pcat_con = 0, pcat_mod = 0)
     
-    tau_vec <- xbcf.fit$tauhats.adjusted + mean_y
+    tauhats.adjusted <- xbcf.fit$tauhats[,3] * xbcf.fit$b_draws[3, 2]
+    tau_vec <- tauhats.adjusted + mean_y
     tau_mat <- matrix(tau_vec, n, t1-t0+1)
     # mu_vec <- xbcf.fit$muhats.adjusted
     # mu_mat <- matrix(mu_vec, n, t1-t0+1)
