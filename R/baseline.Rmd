@@ -22,7 +22,7 @@ sig_a = 1
 mu_g = 1
 sig_g = 1
 
-mc <- 20
+mc <- 10
 tau_xbcf_mc <- array(0, dim = c(mc, n, t1-t0+1))
 tau_freq_mc <- array(0, dim = c(mc, t1))
 # pct_bias_mc <- array(0, dim = c(mc, n, t1-t0+1))
@@ -49,13 +49,14 @@ z = rbinom(n, 1, pi)
 ```{r}
 pb <- txtProgressBar(min = 0, max = mc, initial = 0) 
 count_iter <- 0
-if (!exists("longBet_sim.RData")){
-  save(count_iter, tau_mat, file = "longBet_sim.RData")
+filename <- "longBet_sim_ps.RData"
+if (!exists(filename)){
+  save(count_iter, tau_mat, file = filename)
 }
 
 for (iter in 1:mc){
   setTxtProgressBar(pb,iter)
-  load('longBet_sim.RData')
+  load(filename)
   if (count_iter > iter) {next}
   
   eps = matrix(rnorm(n*t1, 0, 0.2), nrow = n, ncol = t1)
@@ -85,14 +86,14 @@ for (iter in 1:mc){
   tau_freq_mc[iter,] <- colMeans(ytilde[matrix(z_mat[,1])==1,]) - colMeans(ytilde[matrix(z_mat[,1])==0,]) - recenter
   
   count_iter <- iter
-  save(count_iter, tau_mat, tau_xbcf_mc, tau_freq_mc, file = "longBet_sim.RData")
+  save(count_iter, tau_mat, tau_xbcf_mc, tau_freq_mc, file = filename)
   
 }
 ```
 
 ## Results
 ```{r}
-load('longBet_sim.RData')
+load('longBet_sim_ps.RData')
 df <- data.frame(time = seq(t0,t1),
                  xbcf = colMeans(colMeans(tau_xbcf_mc)),
                  freq = colMeans(tau_freq_mc[,t0:t1]),
